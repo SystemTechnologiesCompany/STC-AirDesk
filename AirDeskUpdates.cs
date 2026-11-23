@@ -61,6 +61,16 @@ internal sealed class AirDeskUpdates
 
     public UpdateStatus Check()
     {
+        return Check(new Version(InstalledVersion));
+    }
+
+    public UpdateStatus Check(Version installedVersion)
+    {
+        return Check(installedVersion, false);
+    }
+
+    public UpdateStatus Check(Version installedVersion, bool includeCurrent)
+    {
         currentOffer = null;
         Uri endpoint = new Uri("https://api.github.com/repos/" + Repository + "/releases/latest");
         try
@@ -78,7 +88,7 @@ internal sealed class AirDeskUpdates
                     body.Write(buffer, 0, count);
                 }
                 body.Position = 0;
-                return ReadRelease(body);
+                return ReadRelease(body, installedVersion, includeCurrent);
             }
         }
         catch (WebException error)
@@ -91,7 +101,7 @@ internal sealed class AirDeskUpdates
         catch (XmlException) { return State("error"); }
     }
 
-    private UpdateStatus ReadRelease(Stream source)
+    internal UpdateStatus ReadRelease(Stream source, Version installedVersion, bool includeCurrent = false)
     {
         Release release = new DataContractJsonSerializer(typeof(Release),
             new DataContractJsonSerializerSettings { MaxItemsInObjectGraph = 8192 }).ReadObject(source) as Release;
@@ -100,7 +110,7 @@ internal sealed class AirDeskUpdates
             String.IsNullOrEmpty(release.Tag) || !Regex.IsMatch(release.Tag, @"\A[vV]?[0-9]+\.[0-9]+\.[0-9]+\z") ||
             !Version.TryParse(release.Tag.TrimStart('v', 'V'), out version))
             return State("unavailable");
-        if (version <= new Version(InstalledVersion)) return State("current");
+        if (version < installedVersion || (version == installedVersion && !includeCurrent)) return State("current");
 
         UpdateStatus result = State("missing-download");
         result.version = version.ToString(3);
