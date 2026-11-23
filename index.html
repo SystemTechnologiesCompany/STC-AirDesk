@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STC AirDesk</title>
+  <link rel="icon" type="image/x-icon" href="airdesk-icon.ico">
+  <link rel="stylesheet" href="styles.css">
+  <script src="mouse-training.js" defer></script>
+  <script src="mouse-mode.js" defer></script>
+  <script src="tracker.js" defer></script>
+  <script src="settings.js" defer></script>
+  <script src="updates.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1 class="brand"><img class="brand-mark" src="airdesk-logo.png" width="1000" height="207" alt="STC AirDesk"></h1>
+      <div class="topbar-buttons">
+        <button id="open-settings" type="button">Settings</button>
+        <button id="camera" class="primary" type="button">Start camera</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <section class="preview" aria-label="Camera preview">
+        <div class="panel-header">
+          <h2>Camera preview</h2>
+          <span id="tracking-fps" class="status" hidden></span>
+          <span id="status" class="status" role="status">Camera off</span>
+        </div>
+        <div class="stage">
+          <p id="mouse-pause-banner" class="pause-banner" role="status" hidden>Mouse paused · Hold an open palm to resume</p>
+          <div id="feed" class="feed" hidden>
+            <video id="video" muted playsinline></video>
+            <canvas id="markers" aria-hidden="true"></canvas>
+            <div id="mouse-area" class="mouse-area" aria-hidden="true" hidden></div>
+          </div>
+          <div id="practice-field" class="practice-field" hidden>
+            <div class="practice-instruction"><strong id="practice-task"></strong><span id="practice-score"></span></div>
+            <span id="practice-target" class="practice-target" aria-hidden="true"></span>
+            <span id="practice-drop" class="practice-drop" aria-hidden="true" hidden></span>
+            <div id="typing-drill" class="typing-drill" hidden>
+              <p id="practice-word" class="practice-word"></p>
+              <p id="practice-typed" class="practice-typed" aria-label="Text typed"></p>
+              <div id="practice-keyboard" class="practice-keyboard" aria-label="Practice keyboard" hidden></div>
+            </div>
+            <div id="scroll-drill" class="scroll-drill" hidden>
+              <div class="scroll-paper">
+                <p>Top of the page</p>
+                <p>Keep your index and middle fingers raised in a V.</p>
+                <p>Move your hand down to scroll farther into the page.</p>
+                <p>Move your hand up to return to the top.</p>
+                <p>Bottom of the page</p>
+              </div>
+            </div>
+            <span id="practice-cursor" class="practice-cursor" aria-hidden="true" hidden></span>
+          </div>
+          <div id="placeholder" class="placeholder">
+            <span class="viewfinder" aria-hidden="true"><i></i></span>
+            <p id="message">Start your camera to track your fingertips.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="sidebar">
+      <aside class="controls">
+        <div class="panel-header"><h2>Fingertips</h2></div>
+        <p class="hint">Click a fingertip to show or hide its marker.</p>
+        <div class="hand-selector" id="fingers" role="group" aria-label="Fingertip markers">
+          <svg class="hand-shape" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+            <path d="M31 8.5c0 0-2.53 5.333-3.215 8.062-0.896 3.57 0.13 6.268-1.172 9.73-2.25 4.060-2.402 4.717-10.613 4.708-3.009-0.003-11.626-2.297-11.626-2.297-1.188-0.305-3.373-0.125-3.373-1.453s1.554-2.296 2.936-2.3l5.439 0.478c1.322-0.083 2.705-0.856 2.747-2.585-0.022-2.558-0.275-4.522-1.573-6.6l-5.042-7.867c-0.301-0.626-0.373-1.694 0.499-2.171s1.862 0.232 2.2 0.849l5.631 7.66c0.602 0.559 1.671 0.667 1.58-0.524l-2.487-11.401c-0.155-0.81 0.256-1.791 1.194-1.791 1.231 0 1.987 0.47 1.963 1.213l2.734 11.249c0.214 0.547 0.972 0.475 1.176-0.031l0.779-10.939c0.040-0.349 0.495-0.957 1.369-0.831s1.377 1.063 1.285 1.424l-0.253 10.809c0.177 0.958 0.93 1.098 1.517 0.563l3.827-6.843c0.232-0.574 1.143-0.693 1.67-0.466 0.491 0.32 0.81 0.748 0.81 1.351v0z"/>
+          </svg>
+        </div>
+        <div class="actions">
+          <button id="select-all" type="button">Select all</button>
+          <button id="clear" type="button">Clear</button>
+        </div>
+      </aside>
+      <section class="controls mouse-panel" aria-labelledby="mouse-heading">
+        <div class="panel-header">
+          <h2 id="mouse-heading"><img src="mouse-circle-svgrepo-com.svg" alt="">Mouse Mode</h2>
+          <button id="mouse-mode" type="button" aria-pressed="false" disabled>Enable</button>
+        </div>
+        <p id="mouse-status" class="hint" role="status">Start the camera to enable Mouse Mode.</p>
+        <div class="actions mouse-actions">
+          <button id="pause-mouse" type="button" hidden>Pause mouse</button>
+          <button id="calibrate" type="button" disabled>Calibrate</button>
+        </div>
+        <label class="mouse-option" for="keyboard-feature">
+          <span>Floating keyboard</span>
+          <input id="keyboard-feature" type="checkbox" role="switch" autocomplete="off" aria-describedby="keyboard-hint">
+        </label>
+        <p id="keyboard-hint" class="hint">Turn on to open the keyboard with both index fingertips.</p>
+        <p id="active-calibration" class="hint">Calibration: Default</p>
+        <p id="mouse-result" class="hint" role="status" hidden></p>
+        <div id="calibration" class="calibration" hidden>
+          <label for="calibration-name">Profile name</label>
+          <input id="calibration-name" type="text" maxlength="36" placeholder="Sitting, lying down, standing">
+          <p id="calibration-step" role="status"></p>
+          <p id="calibration-progress"></p>
+          <button id="calibration-capture" type="button">Capture pose</button>
+          <button id="calibration-cancel" type="button">Cancel</button>
+        </div>
+        <details class="mouse-guide">
+          <summary>How to use</summary>
+          <ol>
+            <li>Start the camera and enable Mouse Mode. Show one hand with your thumb and index finger apart.</li>
+            <li>Point with your index finger. The guide box maps to your primary screen.</li>
+            <li>Pinch your thumb and index finger once, then open them to left-click.</li>
+            <li>Pinch your thumb and middle finger, keeping your index finger extended. Release to right-click.</li>
+            <li>Pinch your thumb and ring finger, then release to double-click. You can also pinch your index finger twice quickly.</li>
+            <li>Hold the thumb–index pinch and move your hand to drag. Release to drop.</li>
+            <li>Raise your index and middle fingers in a V with the other fingers curled. Move your hand up or down to scroll.</li>
+            <li>Turn on Floating keyboard in Mouse Mode, then select a text field. Touch both index fingertips together for half a second. Point and pinch with one hand to type, or select × to close the keyboard.</li>
+            <li>To move the keyboard, point at its top bar, hold a thumb–index pinch, and move your hand. Release to place it.</li>
+            <li>Hold an open palm still to pause. Lower it, then show another steady open palm to resume.</li>
+            <li>Lower your hand to pause or press <kbd>Esc</kbd> to turn Mouse Mode off.</li>
+            <li>Minimize the window to send AirDesk to the notification area. Click its tray icon to restore it, or right-click to exit.</li>
+          </ol>
+        </details>
+      </section>
+      <section class="controls" aria-labelledby="practice-heading">
+        <div class="panel-header"><h2 id="practice-heading">Practice</h2></div>
+        <label class="practice-choice" for="practice-kind">
+          <span>Practice drill</span>
+          <select id="practice-kind" disabled>
+            <option value="targets">Click and drag</option>
+            <option value="typing">Type a word</option>
+            <option value="scroll">Scroll up and down</option>
+          </select>
+        </label>
+        <div class="actions"><button id="practice" type="button" disabled>Start practice</button></div>
+        <p id="practice-gesture" class="hint" aria-live="polite" hidden></p>
+        <p id="practice-result" class="hint" role="status" hidden></p>
+      </section>
+      </div>
+    </div>
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-header">
+        <h2 id="settings-title">Settings</h2>
+        <button id="close-settings" type="button" autofocus>Done</button>
+      </div>
+      <section aria-labelledby="profiles-title">
+        <h3 id="profiles-title">Calibration profiles</h3>
+        <label class="settings-profile" for="profile-select">Active profile</label>
+        <select id="profile-select" disabled><option value="">Default</option></select>
+        <p id="settings-status" class="settings-help" role="status">Start the camera to save a separate calibration for each position you use.</p>
+        <div class="profile-actions">
+          <button id="new-profile" type="button" disabled>New profile</button>
+          <button id="recalibrate-profile" type="button" disabled>Recalibrate</button>
+          <button id="delete-profile" type="button" disabled>Delete selected</button>
+          <button id="delete-profiles" type="button" disabled>Delete all</button>
+        </div>
+      </section>
+      <section aria-labelledby="tuning-title">
+        <h3 id="tuning-title">Gesture tuning</h3>
+        <form id="tuning-form">
+          <fieldset id="tuning-controls" disabled>
+            <legend id="tuning-profile">Default profile</legend>
+            <label for="tune-sensitivity">Click sensitivity <output for="tune-sensitivity">50%</output></label>
+            <input id="tune-sensitivity" type="range" min="0" max="100" value="50">
+            <label for="tune-smoothing">Cursor smoothing <output for="tune-smoothing">50%</output></label>
+            <input id="tune-smoothing" type="range" min="0" max="100" value="50">
+            <label for="tune-scrollSpeed">Scroll speed <output for="tune-scrollSpeed">50%</output></label>
+            <input id="tune-scrollSpeed" type="range" min="0" max="100" value="50">
+            <div class="profile-actions">
+              <button type="submit">Save tuning</button>
+              <button id="reset-tuning" type="button">Reset tuning</button>
+            </div>
+          </fieldset>
+        </form>
+        <label class="settings-startup palm-setting">
+          <input id="palm-pause-setting" type="checkbox" checked disabled>
+          <span>Pause or resume with an open palm</span>
+        </label>
+        <p id="tuning-status" class="settings-help" role="status"></p>
+      </section>
+      <section aria-labelledby="startup-title">
+        <h3 id="startup-title">Windows startup</h3>
+        <label class="settings-startup">
+          <input id="startup-setting" type="checkbox" disabled>
+          <span>Open STC AirDesk when I sign in</span>
+        </label>
+        <p id="startup-status" class="settings-help" role="status">Camera and Mouse Mode start off.</p>
+      </section>
+      <section aria-labelledby="updates-title">
+        <h3 id="updates-title">Updates</h3>
+        <p class="settings-help">Installed version <strong id="update-version">—</strong></p>
+        <p id="update-status" class="settings-help" role="status">Check for a new AirDesk release.</p>
+        <details id="update-release" hidden>
+          <summary>Release notes</summary>
+          <p id="update-notes" class="update-notes"></p>
+        </details>
+        <progress id="update-progress" aria-label="Update download progress" max="100" value="0" hidden></progress>
+        <div class="profile-actions">
+          <button id="check-updates" type="button">Check for updates</button>
+          <button id="download-update" type="button" class="primary" hidden>Download update</button>
+          <button id="cancel-update" type="button" hidden>Cancel download</button>
+        </div>
+      </section>
+    </dialog>
+  </main>
+</body>
+</html>
